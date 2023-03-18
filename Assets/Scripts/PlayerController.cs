@@ -6,9 +6,17 @@ public class PlayerController : MonoBehaviour
 {
     [SerializeField] float moveSpeed = 4.0f;
     [SerializeField] float jumpForce = 7.5f;
+    [SerializeField] float rollForce = 6.0f;
+    [SerializeField] float minAttackInterval = 0.25f;
+    [SerializeField] float maxComboInterval = 1.0f;
 
     private int facingDirection = 1;
-    private bool onGround=false;
+    private bool onGround = false;
+    private int currentAttack = 0;
+    private float timeSinceLastAttack = 0;
+    public bool isAttacking = false;
+    public bool isBlocking = false;
+    public bool isRolling = false;
 
     private ColliderSensor groundSensor;
 
@@ -26,6 +34,7 @@ public class PlayerController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        timeSinceLastAttack += Time.deltaTime;
         float inputX = Input.GetAxis("Horizontal");
         animator.SetFloat("SpeedY", body2d.velocity.y);
 
@@ -51,15 +60,19 @@ public class PlayerController : MonoBehaviour
             facingDirection = -1;
         }
         // ÅÜ²½
-        body2d.velocity = new Vector2(inputX * moveSpeed, body2d.velocity.y);
-        if (inputX != 0)
+        if (!isAttacking && !isBlocking)
         {
-            animator.SetBool("Running", true);
+            body2d.velocity = new Vector2(inputX * moveSpeed, body2d.velocity.y);
+            if (inputX != 0)
+            {
+                animator.SetBool("Running", true);
+            }
+            else if (inputX == 0)
+            {
+                animator.SetBool("Running", false);
+            }
         }
-        else if (inputX == 0)
-        {
-            animator.SetBool("Running", false);
-        }
+        
 
         // ÌøÔ¾
         if (Input.GetKeyDown("space") && onGround)
@@ -71,6 +84,38 @@ public class PlayerController : MonoBehaviour
             groundSensor.Disable(0.2f);
         }
 
-        
+        //¹¥»÷
+        if (Input.GetMouseButtonDown(0) && (timeSinceLastAttack>=minAttackInterval))
+        {
+            if (timeSinceLastAttack < maxComboInterval) 
+            {
+                currentAttack++;
+                if (currentAttack > 3) currentAttack = 1;
+            } 
+            else currentAttack = 1;
+            animator.SetTrigger("Attack" + currentAttack);
+            timeSinceLastAttack = 0;
+        }
+
+        // ¸ñµ²
+        if (Input.GetMouseButtonDown(1))
+        {
+            isBlocking = true;
+            animator.SetBool("Block", isBlocking);
+        }
+        else if (Input.GetMouseButtonUp(1))
+        {
+            isBlocking = false;
+            animator.SetBool("Block", isBlocking);
+        }
+
+        // ·­¹ö
+        if (Input.GetKeyDown("left shift") && !isAttacking && !isBlocking)
+        {
+            body2d.velocity = new Vector2(inputX * rollForce, body2d.velocity.y);
+            animator.SetTrigger("Roll");    
+        }
+
+
     }
 }
