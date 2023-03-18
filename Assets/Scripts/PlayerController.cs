@@ -5,7 +5,7 @@ using UnityEngine;
 public class PlayerController : MonoBehaviour
 {
     [SerializeField] float moveSpeed = 4.0f;
-    [SerializeField] float jumpForce = 7.5f;
+    [SerializeField] float jumpForce = 6.0f;
     [SerializeField] float rollForce = 6.0f;
     [SerializeField] float minAttackInterval = 0.25f;
     [SerializeField] float maxComboInterval = 1.0f;
@@ -19,6 +19,8 @@ public class PlayerController : MonoBehaviour
     public bool isRolling = false;
 
     private ColliderSensor groundSensor;
+    private ColliderSensor wallSensorL;
+    private ColliderSensor wallSensorR;
 
     private Rigidbody2D body2d;
     private Animator animator;
@@ -29,6 +31,8 @@ public class PlayerController : MonoBehaviour
         animator = GetComponent<Animator>();
 
         groundSensor = transform.Find("GroundSensor").GetComponent<ColliderSensor>();
+        wallSensorL = transform.Find("WallSensorL").GetComponent<ColliderSensor>();
+        wallSensorR = transform.Find("WallSensorR").GetComponent<ColliderSensor>();
     }
 
     // Update is called once per frame
@@ -62,12 +66,13 @@ public class PlayerController : MonoBehaviour
         // Εά²½
         if (!isAttacking && !isBlocking)
         {
-            body2d.velocity = new Vector2(inputX * moveSpeed, body2d.velocity.y);
-            if (inputX != 0)
+            if ((inputX > 0 && !wallSensorR.CheckCollider()) || (inputX < 0 && !wallSensorL.CheckCollider()))
             {
+                body2d.velocity = new Vector2(inputX * moveSpeed, body2d.velocity.y);
                 animator.SetBool("Running", true);
             }
-            else if (inputX == 0)
+
+            else
             {
                 animator.SetBool("Running", false);
             }
