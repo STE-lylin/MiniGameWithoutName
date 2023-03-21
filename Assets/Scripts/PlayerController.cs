@@ -18,6 +18,8 @@ public class PlayerController : MonoBehaviour
     public bool isBlocking = false;
     public bool isRolling = false;
 
+    private int health = 100;
+
     private ColliderSensor groundSensor;
     private ColliderSensor wallSensorL;
     private ColliderSensor wallSensorR;
@@ -122,5 +124,21 @@ public class PlayerController : MonoBehaviour
         }
 
 
+    }
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+        Debug.Log(collision.gameObject.tag);
+        if (collision.gameObject.CompareTag("Enemy"))
+        {
+            animator.SetTrigger("Hurt");
+        }
+    }
+    private void OnTriggerEnter2D(Collider2D collision)
+    {
+        Debug.Log(collision.gameObject.tag);
+        if (collision.gameObject.CompareTag("Enemy"))
+        {
+            animator.SetTrigger("Hurt");
+        }
     }
 }
